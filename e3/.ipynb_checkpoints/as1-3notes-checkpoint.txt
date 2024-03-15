@@ -1,0 +1,770 @@
+--- as1 ---
+
+......
+monthly-totals.py
+......
+
+import numpy as np
+import pandas as pd
+
+
+def get_precip_data():
+    return pd.read_csv('precipitation.csv', parse_dates=[2])
+
+
+def date_to_month(d):
+    # You may need to modify this function, depending on your data types.
+    return '%04i-%02i' % (d.year, d.month)
+
+
+def pivot_months_pandas(data):
+    """
+    Create monthly precipitation totals for each station in the data set.
+    
+    This should use Pandas methods to manipulate the data.
+    """
+    
+    temp = data.copy(deep=True)
+    
+    date = temp['date']
+    
+    month = date.apply(date_to_month)
+    
+    temp.insert(2, "month", month)
+    
+    temp.drop('date', axis=1, inplace=True)
+    
+    totals = temp.groupby(['month', 'name']).aggregate('sum').reset_index()
+    
+    totals = totals.pivot(index='name', columns='month', values='precipitation')
+    
+    counts = temp.groupby(['month', 'name']).aggregate('count').reset_index()
+    
+    counts = counts.pivot(index='name', columns='month', values='precipitation')
+    
+    return totals, counts
+
+
+def pivot_months_loops(data):
+    """
+    Create monthly precipitation totals for each station in the data set.
+    
+    This does it the hard way: using Pandas as a dumb data store, and iterating in Python.
+    """
+    # Find all stations and months in the data set.
+    stations = set()
+    months = set()
+    for i,r in data.iterrows():
+        stations.add(r['name'])
+        m = date_to_month(r['date'])
+        months.add(m)
+
+    # Aggregate into dictionaries so we can look up later.
+    stations = sorted(list(stations))
+    row_to_station = dict(enumerate(stations))
+    station_to_row = {s: i for i,s in row_to_station.items()}
+    
+    months = sorted(list(months))
+    col_to_month = dict(enumerate(months))
+    month_to_col = {m: i for i,m in col_to_month.items()}
+
+    # Create arrays for the data, and fill them.
+    precip_total = np.zeros((len(row_to_station), 12), dtype=np.uint)
+    obs_count = np.zeros((len(row_to_station), 12), dtype=np.uint)
+
+    for _, row in data.iterrows():
+        m = date_to_month(row['date'])
+        r = station_to_row[row['name']]
+        c = month_to_col[m]
+
+        precip_total[r, c] += row['precipitation']
+        obs_count[r, c] += 1
+
+    # Build the DataFrames we needed all along (tidying up the index names while we're at it).
+    totals = pd.DataFrame(
+        data=precip_total,
+        index=stations,
+        columns=months,
+    )
+    totals.index.name = 'name'
+    totals.columns.name = 'month'
+    
+    counts = pd.DataFrame(
+        data=obs_count,
+        index=stations,
+        columns=months,
+    )
+    counts.index.name = 'name'
+    counts.columns.name = 'month'
+    
+    return totals, counts
+
+
+def main():
+    data = get_precip_data()
+    totals, counts = pivot_months_pandas(data)
+    totals.to_csv('totals.csv')
+    counts.to_csv('counts.csv')
+    np.savez('monthdata.npz', totals=totals.values, counts=counts.values)
+
+
+if __name__ == '__main__':
+    main()
+
+......
+monthly_totals_hint.py
+......
+
+import numpy as np
+import pandas as pd
+
+
+def get_precip_data():
+    return pd.read_csv('precipitation.csv', parse_dates=[2])
+
+
+def date_to_month(d):
+    # You may need to modify this function, depending on your data types.
+    return '%04i-%02i' % (d.year, d.month)
+
+
+def pivot_months_pandas(data):
+    """
+    Create monthly precipitation totals for each station in the data set.
+    
+    This should use Pandas methods to manipulate the data.
+    """
+    date = data['date']
+    
+    month = date.apply(date_to_month)
+    
+    data.insert(2, "month", month)
+    
+    data.drop('date', axis=1, inplace=True)
+    
+    totals = data.groupby(['month', 'name']).aggregate('sum').reset_index()
+    
+    totals = totals.pivot(index='name', columns='month', values='precipitation')
+    
+    counts = data.groupby(['month', 'name']).aggregate('count').reset_index()
+    
+    counts = counts.pivot(index='name', columns='month', values='precipitation')
+    
+    return totals, counts
+
+
+def pivot_months_loops(data):
+    """
+    Create monthly precipitation totals for each station in the data set.
+    
+    This does it the hard way: using Pandas as a dumb data store, and iterating in Python.
+    """
+    # Find all stations and months in the data set.
+    stations = set()
+    months = set()
+    for i,r in data.iterrows():
+        stations.add(r['name'])
+        m = date_to_month(r['date'])
+        months.add(m)
+
+    # Aggregate into dictionaries so we can look up later.
+    stations = sorted(list(stations))
+    row_to_station = dict(enumerate(stations))
+    station_to_row = {s: i for i,s in row_to_station.items()}
+    
+    months = sorted(list(months))
+    col_to_month = dict(enumerate(months))
+    month_to_col = {m: i for i,m in col_to_month.items()}
+
+    # Create arrays for the data, and fill them.
+    precip_total = np.zeros((len(row_to_station), 12), dtype=np.uint)
+    obs_count = np.zeros((len(row_to_station), 12), dtype=np.uint)
+
+    for _, row in data.iterrows():
+        m = date_to_month(row['date'])
+        r = station_to_row[row['name']]
+        c = month_to_col[m]
+
+        precip_total[r, c] += row['precipitation']
+        obs_count[r, c] += 1
+
+    # Build the DataFrames we needed all along (tidying up the index names while we're at it).
+    totals = pd.DataFrame(
+        data=precip_total,
+        index=stations,
+        columns=months,
+    )
+    totals.index.name = 'name'
+    totals.columns.name = 'month'
+    
+    counts = pd.DataFrame(
+        data=obs_count,
+        index=stations,
+        columns=months,
+    )
+    counts.index.name = 'name'
+    counts.columns.name = 'month'
+    
+    return totals, counts
+
+
+def main():
+    data = get_precip_data()
+    totals, counts = pivot_months_loops(data)
+    totals.to_csv('totals.csv')
+    counts.to_csv('counts.csv')
+    np.savez('monthdata.npz', totals=totals.values, counts=counts.values)
+
+
+if __name__ == '__main__':
+    main()
+
+......
+np_summary.py
+......
+
+import numpy as np
+
+data = np.load('monthdata.npz')
+
+totals = data['totals']
+counts = data['counts']
+
+prec_city_sum = np.sum(totals, axis=1) # sums all the rows and creates array of row sums
+print("Row with lowest total precipitation:")
+print(np.argmin(prec_city_sum))
+
+prec_month_sum = np.sum(totals, axis=0)
+month_days_sum = np.sum(counts, axis=0)
+
+print("Average precipitation in each month:")
+print(np.divide(prec_month_sum, month_days_sum))
+
+city_days_sum = np.sum(counts, axis=1)
+
+print("Average precipitation in each city:")
+print(np.divide(prec_city_sum, city_days_sum))
+
+row, column = np.shape(totals)
+
+reshaped_totals = np.reshape(totals, (4*row, 3))
+
+sum_reshaped = np.sum(reshaped_totals, axis=1)
+
+print("Quarterly precipitation totals:")
+print(np.reshape(sum_reshaped, (row, column//3)))
+
+......
+pd_summary.py
+......
+
+import pandas as pd
+
+totals = pd.read_csv('totals.csv').set_index(keys=['name'])
+counts = pd.read_csv('counts.csv').set_index(keys=['name'])
+
+city_sum = totals.sum(axis=1)
+
+print("City with lowest total precipitation:")
+print(city_sum.idxmin())
+
+month_sum = totals.sum(axis=0)
+mdays_count = counts.sum(axis=0)
+
+print("Average precipitation in each month:")
+print(month_sum.divide(mdays_count))
+
+cdays_count = counts.sum(axis=1)
+
+print("Average precipitation in each city:")
+print(city_sum.divide(cdays_count))
+
+......
+signal-plot.ipynb
+......
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+N_SAMPLES = 500
+
+input_range = np.linspace(0, 2*np.pi, N_SAMPLES, dtype=np.double)
+
+signal = np.sin(input_range)
+
+noise = np.random.normal(0.0, 1.0, N_SAMPLES)
+
+assert noise.shape == input_range.shape
+
+noisy_signal = signal + noise/5
+
+plt.plot(input_range, noisy_signal, 'b.', alpha=0.5)
+plt.plot(input_range, signal, 'r-', linewidth=4)
+plt.legend(['Sensor readings','Truth'])
+plt.xlabel('Time')
+plt.ylabel('Value of thing we care about')
+plt.show()
+
+del signal
+
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
+filtered = lowess(noisy_signal, input_range, frac=0.1)
+
+plt.plot(input_range, noisy_signal, 'b.', alpha=0.5)
+plt.plot(filtered[:, 0], filtered[:, 1], 'r-', linewidth=4)
+plt.legend(['Sensor readings', 'Reconstructed signal'])
+plt.show()
+
+......
+answers1.txt
+......
+1. Where you did the same calculations with NumPy and Pandas, which did you find easier to work with? Which code do you think is easier to read?
+I found working with Pandas a lot easier and a lot more convenient, as the representation of data is so neat and understandable. Ease of readability of code is the same. They have same function names (at least in this easy exercise) so i didnt see any significant problems reading one code worse than another.
+
+2. What were the running times of the two pivot_months_* functions? How can you explain the difference?
+Running times:
+    pivot_months_pandas(data) => 3.91 ms ± 76.9 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    pivot_months_loops(data) => 92.6 ms ± 756 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+Using pandas is a lot more effective and faster rather than using simple python loops. I think it is because python loops use big overhead when storing or manipulating data which makes it slower for loops function. Whereas for function with pandas the information storage is managed a lot more effective also in terms of manipulation of data such as summation and etc.
+
+--- as2 ---
+
+......
+create_plots.py
+......
+
+import sys
+import pandas as pd
+import matplotlib.pyplot as plt
+
+filename1 = sys.argv[1]
+filename2 = sys.argv[2]
+
+filedata1 = pd.read_csv(filename1, sep=' ', header=None, index_col=1, names=['lang', 'page', 'views', 'bytes'])
+filedata2 = pd.read_csv(filename2, sep=' ', header=None, index_col=1, names=['lang', 'page', 'views', 'bytes'])
+
+filesorted1 = filedata1.sort_values(by='views', ascending=False)
+
+mergedata = pd.merge(filedata1, filedata2, left_index=True, right_index=True)
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1, 2, 1)
+plt.title('Popularity Distribution')
+plt.xlabel('Rank')
+plt.ylabel('Views')
+plt.plot(filesorted1['views'].values)
+plt.subplot(1, 2, 2)
+plt.title('Hourly Correlation')
+plt.xlabel('Hour 1 views')
+plt.ylabel('Hour 2 views')
+plt.scatter(mergedata['views_x'], mergedata['views_y'])
+plt.xscale('log')
+plt.yscale('log')
+plt.savefig('wikipedia.png')
+
+......
+dog-rates.ipynb
+......
+
+import pandas as pd
+import re
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+
+data = pd.read_csv('dog_rates_tweets.csv', parse_dates=['created_at'])
+def get_rating(x):
+    rating = re.search(r'(\d+(\.\d+)?)/10', x)
+    if rating:
+        return float(rating.group(1))
+    return None
+
+data['rating'] = data['text'].apply(get_rating)
+normal_data = data.dropna(subset=['rating'])
+
+clean_data = normal_data[(normal_data['rating'] < 26)]
+
+def to_timestamp(x):
+    return x.timestamp()
+    
+copied = clean_data.copy()
+copied['timestamp'] = copied['created_at'].apply(to_timestamp)
+
+fit = linregress(copied['timestamp'], copied['rating'])
+
+fit.slope, fit.intercept
+
+plt.xticks(rotation=25)
+plt.plot(copied['created_at'], copied['rating'], 'b.', alpha=0.5)
+plt.plot(copied['created_at'], copied['timestamp']*fit.slope + fit.intercept, 'r-', linewidth=3)
+plt.show()
+
+......
+answers2.txt
+......
+
+1. In the hint above, what is the result of the calculation data['timestamp']*fit.slope + fit.intercept? What is the type, and describe the values.
+The result is the prediction of rating for each timestamp. Its type is float64 and values as said earlier, prediction of rating for each timestamp.
+
+2. In the same hint, why does this produce a fit line on the graph? Why are the created_at values and timestamp values paired correctly to make points on the plot?
+This produces a fit line because linear regression function applies to timestamps and then plots them on the graph. The created_at values and timestamp values paired correctly because timestamp values derived from created_at values so when plotting against rating anf timestamp it creates accurate line on the graph.
+
+--- as3 ---
+
+......
+calc_distance.py
+......
+
+import sys
+import pandas as pd
+import xml.etree.ElementTree as ET
+import numpy as np
+from pykalman import KalmanFilter
+
+def output_gpx(points, output_filename):
+    """
+    Output a GPX file with latitude and longitude from the points DataFrame.
+    """
+    from xml.dom.minidom import getDOMImplementation
+    def append_trkpt(pt, trkseg, doc):
+        trkpt = doc.createElement('trkpt')
+        trkpt.setAttribute('lat', '%.8f' % (pt['lat']))
+        trkpt.setAttribute('lon', '%.8f' % (pt['lon']))
+        trkseg.appendChild(trkpt)
+    
+    doc = getDOMImplementation().createDocument(None, 'gpx', None)
+    trk = doc.createElement('trk')
+    doc.documentElement.appendChild(trk)
+    trkseg = doc.createElement('trkseg')
+    trk.appendChild(trkseg)
+    
+    points.apply(append_trkpt, axis=1, trkseg=trkseg, doc=doc)
+    
+    with open(output_filename, 'w') as fh:
+        doc.writexml(fh, indent=' ')
+
+def dist_formula(lat1, lon1, lat2, lon2):
+    r = 6371 # meters
+    a = np.sin(((lat2 - lat1) * (np.pi / 180)) / 2) * np.sin(((lat2 - lat1) * (np.pi / 180)) / 2) + np.cos(lat1 * (np.pi / 180)) * np.cos(lat2 * (np.pi / 180)) * np.sin(((lon2 - lon1) * (np.pi / 180)) / 2) * np.sin(((lon2 - lon1) * (np.pi / 180)) / 2)
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+    return r * c
+
+def distance(data):
+    all_dist = dist_formula(data['lat'], data['lon'], data['lat'].shift(-1), data['lon'].shift(-1))
+    return np.nansum(all_dist)
+
+def smooth(data):
+    trans = 10 / (10 ** 5) # position error
+    obs = 17.5 / (10 ** 5) # measurement error
+    
+    transition_covariance = np.diag([trans,trans]) ** 2
+    observation_covariance = np.diag([obs,obs]) ** 2
+    
+    kf = KalmanFilter(transition_matrices=[[1, 0], [0, 1]],initial_state_mean=data.iloc[0],transition_covariance=transition_covariance,observation_covariance=observation_covariance)
+    
+    kalman_smoothed, _ = kf.smooth(data)
+    
+    return pd.DataFrame(kalman_smoothed, columns=['lat', 'lon'])
+    
+def main():    
+    tree = ET.parse(sys.argv[1])
+    root = tree.getroot()
+
+    namespace = {'default': 'http://www.topografix.com/GPX/1/0'}
+
+    points = pd.DataFrame([{'lat': float(trkpt.get('lat')), 'lon': float(trkpt.get('lon'))} for trkpt in root.findall('.//default:trkpt', namespace)])
+    
+    print('Unfiltered distance: %0.2f' % (distance(points)))
+    
+    smoothed_points = smooth(points)
+    print('Filtered distance: %0.2f' % (distance(smoothed_points)))
+    output_gpx(smoothed_points, 'out.gpx')
+    
+if __name__ == '__main__':
+    main()
+    
+......
+smooth_temperature.py
+......
+
+import sys
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.nonparametric.smoothers_lowess import lowess
+from pykalman import KalmanFilter
+
+filename = sys.argv[1]
+
+cpu_data = pd.read_csv(filename, parse_dates=['timestamp'])
+
+loess_smoothed = lowess(cpu_data['temperature'], cpu_data['timestamp'], frac=0.03)
+
+kalman_data = cpu_data[['temperature', 'cpu_percent', 'sys_load_1', 'fan_rpm']]
+initial_state = kalman_data.iloc[0]
+observation_covariance = np.diag([1, 1, 1, 1]) ** 2
+transition_covariance = np.diag([0.01, 0.004, 0.004, 0.004]) ** 2
+transition = [[0.95,0.5,0.4,-0.001], [0.1,0.4,2.2,0], [0,0,0.95,0], [0,0,0,1]]
+
+kf = KalmanFilter(transition_matrices=transition, initial_state_mean=initial_state, observation_covariance=observation_covariance, transition_covariance=transition_covariance)
+kalman_smoothed, _ = kf.smooth(kalman_data)
+plt.figure(figsize=(12, 4))
+plt.plot(cpu_data['timestamp'], cpu_data['temperature'], 'b.', alpha=0.5)
+plt.plot(cpu_data['timestamp'], loess_smoothed[:, 1], 'r-')
+plt.plot(cpu_data['timestamp'], kalman_smoothed[:, 0], 'g-')
+plt.legend(['Temperature Sensor readings','LOESS Smoothing Signal','Kalman Smoothing Signal'])
+plt.xlabel('Timestamp')
+plt.ylabel('CPU Temperature')
+plt.savefig('cpu.svg')
+
+......
+answers3.txt
+......
+
+1. When smoothing the CPU temperature, do you think you got a better result with LOESS or Kalman smoothing? What differences did you notice?
+Certainly using Kalman smoothing is better in this case as it considers a lot more factors for a better prediction noise and smoothing signals. Kalman is more sensitive when compared to LOESS smoothing as, again, it takes more factors to get a better smoothing.
+
+2. In the GPX files, you might have also noticed other data about the observations: time stamp, course (heading in degrees from north, 0–360), speed (in m/s). How could those have been used to make a better prediction about the “next” latitude and longitude?
+Using course could make a much better prediction of position. Time stamp can help with predicting based on difference between observations. Speed might help with predicting distance more precisely.
+
+--- as1_req ---
+
+Download the NumPy data archive monthdata.npz. This has two arrays containing information about precipitation in Canadian cities (each row represents a city) by month (each column is a month Jan–Dec of a particular year). The arrays are the total precipitation observed on different days, and the number of observations recorded. You can get the NumPy arrays out of the data file like this:
+
+data = np.load('monthdata.npz')
+totals = data['totals']
+counts = data['counts']
+Use this data to find these things:
+
+Which city had the lowest total precipitation over the year? Hints: sum across the rows (axis 1); use argmin to determine which row has the lowest value. Print the row number.
+Determine the average precipitation in these locations for each month. That will be the total precipitation for each month (axis 0), divided by the total observations for that months. Print the resulting array.
+Do the same for the cities: give the average precipitation (daily precipitation averaged over the month) for each city by printing the array.
+Calculate the total precipitation for each quarter in each city (i.e. the totals for each station across three-month groups). You can assume the number of columns will be divisible by 3. Hint: use the reshape function to reshape to a 4n by 3 array, sum, and reshape back to n by 4.
+Write a Python program np_summary.py that produces the values specified here. Its output (with print()) should exactly match the provided np_summary.txt. We will test it on a different set of inputs: your code should not assume there is a specific number of weather stations. You can assume that there is exactly one year (12 months) of data.
+
+To get started with Pandas, we will repeat the analysis we did with Numpy. Pandas is more data-focussed and is more friendly with its input formats. We can use nicely-formatted CSV files, and read it into a Pandas dataframe like this:
+
+totals = pd.read_csv('totals.csv').set_index(keys=['name'])
+This is the same data, but has the cities and months labelled, which is nicer to look at.
+
+Reproduce the values you calculated with NumPy, except the quarterly totals, which are a bit of a pain. The difference will be that you can produce more informative output, since the actual months and cities are known. When you print a Pandas DataFrame or series, the format will be nicer.
+
+Write a Python program pd_summary.py that produces the values specified here. Its output should exactly match the provided pd_summary.txt.
+
+The data in the provided files had to come from somewhere. What you got started with 180MB of data for 2016 from the Global Historical Climatology Network. To get the data down to a reasonable size, filtered out all but a few weather stations and precipitation values, joined in the names of those stations, and got the file provided as precipitation.csv.
+
+The data in precipitation.csv is a fairly typical result of joining tables in a database, but not easy to analyse as you did above.
+
+Create a program monthly_totals.py that recreates the totals.csv, counts.csv, and monthdata.npz files as you originally got them. The provided monthly_totals_hint.py provides an outline of what needs to happen. You need to fill in the pivot_months_pandas function (and leave the other parts intact for the next part).
+
+Add a column 'month' that contains the results of applying the date_to_month function to the existing 'date' column. [You may have to modify date_to_month slightly, depending how your data types work out. ]
+Use the Pandas groupby method
+to aggregate over the name and month columns. Sum each of the aggregated values to get the total. Hint: grouped_data.aggregate('sum').reset_index()
+
+Use the Pandas pivot method to create a row for each station (name) and column for each month.
+Repeat with the 'count' aggregation to get the count of observations.
+When you submit, make sure your code is using the pivot_months_pandas function you wrote.
+
+--- as2_req ---
+
+For this question, we will use some data on the number of times individual Wikipedia pages were viewed in two particular hours. These were extracted from Wikipedia's page view counts.
+
+To get the two provided pagecounts-*.txt, we selected some English pages at random from the first full data set. Then we selected those pages from the second data set. The result is that some of the pages in the first data set are not in the second: those pages weren't viewed in the second hour
+
+We will produce two plots of the data provided with a stand-alone Python program create_plots.py. The filenames you operate on must be taken from the command line. Your program must run with a command like this:
+
+python3 create_plots.py pagecounts-20190509-120000.txt pagecounts-20190509-130000.txt
+To get the command line arguments (as strings), you can use the built-in sys module:
+
+import sys
+⋮
+filename1 = sys.argv[1]
+filename2 = sys.argv[2]
+The files contain space-separated values for the language, page name, number of views, and bytes transferred. You can get the data out of this file format something like this:
+
+pd.read_csv(filename, sep=' ', header=None, index_col=1,
+        names=['lang', 'page', 'views', 'bytes'])
+We will produce a single plot with two subplots on the left and right. Matplotlib can do that with a skeleton like this:
+
+import matplotlib.pyplot as plt
+⋮
+plt.figure(figsize=(10, 5)) # change the size to something sensible
+plt.subplot(1, 2, 1) # subplots in 1 row, 2 columns, select the first
+plt.plot(…) # build plot 1
+plt.subplot(1, 2, 2) # ... and then select the second
+plt.plot(…) # build plot 2
+Plot 1: Distribution of Views
+
+For the first plot, we will use only the first data set. Based on statistics knowledge gained from blog posts and YouTube videos, we believe the distribution of page views should be a Pareto distribution.
+
+Let's have a look: using only the first input file, sort the data by the number of views (decreasing). [Hint: sort_values.] If you give plt.plot a single data set, it will be plotted against a 0 to n-1 range, which will be what we want.
+
+But, if we give matplotlib a Pandas Series (like data['views'] will be), it will try to use its index as the x-coordinate. To convince it to do otherwise, we have two options: (1) pass the underlying NumPy array (data['views'].values), or (2) create a range to explicitly use as the x-coordinates (with np.arange).
+
+Plot 2: Hourly Views
+
+The second plot we want to create is a scatterplot of views from the first data file (x-coordinate) and the corresponding values from the second data file (y-coordinate). It's fairly reasonable to expect a linear relationship between those values.
+
+To do that, you'll need to get the two series into the same DataFrame. If you used the hint above to read the file, the page name will be the index.
+
+You can then use these indexes: if you copy a Series from one DataFrame to another, elements are identified by their index. Since the DataFrames have the page name as their index, you can just put the two Series representing page views from both days into a single DataFrame and view counts for each page will end up alongside each other.
+
+Because of the distribution of the values, the linear axes don't make much sense. Change this plot to log-scale on both axes using plt.xscale and plt.yscale.
+
+You can use plt.show() to see the figure as the program runs. That's probably easiest for testing, but as a final result, don't show(), but create a PNG file wikipedia.png like this:
+
+plt.savefig('wikipedia.png')
+Use the functions plt.title, plt.xlabel, and plt.ylabel to give some useful labels to the plots.
+
+This question is heavily inspired by David H. Montgomery's Pup Inflation post. His analysis is an excellent data science task, and we will ask the same question here: has there been grade inflation on the @dog_rates Twitter, which rates the cuteness of users' dog pictures?
+
+We scraped the @dog_rates feed with tweet_dumper.py. The result it produced is provided in the dog_rates_tweets.csv file, so we don't all have to scrape the data. (Yes, there's a gap in the data: data collection is hard.)
+
+Do this analysis in a Jupyter notebook dog-rates.ipynb. To look for score inflation, we'll first have to make sense of the data. The steps we think are necessary to do this:
+
+Load the data from the CSV into a DataFrame. (Assume a dog_rates_tweets.csv file is in the same folder as the notebook file.)
+Find tweets that contain an “n/10” rating (because not all do). Extract the numeric rating. Exclude tweets that don't contain a rating.
+Remove outliers: there are a few obvious ones. Exclude rating values that are too large to make sense. (Maybe larger than 25/10?)
+Make sure the 'created_at' column is a datetime value, not a string. You can either do this by applying a function that parses the string to a date (likely using strptime to create a datetime object), or by asking Pandas' read_csv function to parse dates in that column with a parse_dates argument.
+Create a scatter plot of date vs rating, so you can see what the data looks like.
+[The question continues, and there are a few hints below. You may want to do this part of the question and make sure things are working before continuing.]
+
+Linear Fitting
+
+One analysis Montgomery didn't do on the data: a best-fit line.
+
+The scipy.stats.linregress function can do a linear regression for us, but it works on numbers, not datetime objects. Datetime objects have a .timestamp() method that will give us a number (of seconds after some epoch), but we need to get that into our data before using it. If you write a function to_timestamp then you can do one of these (if it's a normal Python function, or if it's a NumPy ufunc, respectively):
+
+data['timestamp'] = data['created_at'].apply(to_timestamp)
+data['timestamp'] = to_timestamp(data['created_at'])
+You can then use linregress to get a slope and intercept for a best fit line.
+
+Produce results like those found in the provided screenshot, dog-rates-result.png. At the end of your notebook (so the TA knows where to look), show the data itself, the slope and intercept of the best-fit line, and a scatterplot with fit line.
+
+Hints
+
+This Python regular expression will look for “n/10” strings in the format they seem to occur in the tweets. If this is found by searching in a tweet, then the resulting match object can be used to get the numeric rating as a string, which can then be converted to a float.
+
+r'(\d+(\.\d+)?)/10'
+The easiest way to “exclude” some rows from the DataFrame is probably to return None for rating values that aren't valid ratings, and then use Series.notnull to create a boolean index. There are certainly other ways to do the job as well.
+
+To plot the best-fit line, the x values must be datetime objects, not the timestamps. To add the best-fit line, you can plot data['created_at'] against data['timestamp']*fit.slope + fit.intercept to get a fit line (assuming you stored the results of linregress in a variable fit).
+
+Here are some hints to style the plot as it appears in my screenshot, which seems to look nice enough:
+
+plt.xticks(rotation=25)
+plt.plot(???, ???, 'b.', alpha=0.5)
+plt.plot(???, ???, 'r-', linewidth=3)
+
+--- as3_req ---
+
+Before you get started, have a look:
+
+plt.figure(figsize=(12, 4))
+plt.plot(cpu_data['timestamp'], cpu_data['temperature'], 'b.', alpha=0.5)
+# plt.show() # maybe easier for testing
+plt.savefig('cpu.svg') # for final submission
+LOESS Smoothing
+
+We can try LOESS smoothing to get the signal out of noise. For this part of the question, we're only worried about the temperature values.
+
+Use the lowess function from statsmodels to generate a smoothed version of the temperature values.
+
+Adjust the frac parameter to get as much signal as possible with as little noise as possible. The contrasting factors: (1) when the temperature spikes (because of momentary CPU usage), the high temperature values are reality and we don't want to smooth that information out of existence, but (2) when the temperature is relatively flat (where the computer is not in use), the temperature is probably relatively steady, not jumping randomly between 30°C and 33°C as the data implies.
+
+Have a look and see how you're doing:
+
+loess_smoothed = lowess(…)
+plt.plot(cpu_data['timestamp'], loess_smoothed[:, 1], 'r-')
+Kalman Smoothing
+
+A Kalman filter will let us take more information into account: we can use the processor usage, system load, and fan speed to give a hint about when the temperature will be increasing/decreasing. The time stamp will be distracting: keep only the four columns you need.
+
+kalman_data = cpu_data[['temperature', 'cpu_percent', 'sys_load_1', 'fan_rpm']]
+To get you started on the Kalman filter parameters, we have something like this:
+
+initial_state = kalman_data.iloc[0]
+observation_covariance = np.diag([0, 0, 0, 0]) ** 2 # TODO: shouldn't be zero
+transition_covariance = np.diag([0, 0, 0, 0]) ** 2 # TODO: shouldn't be zero
+transition = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]] # TODO: shouldn't (all) be zero
+You can choose sensible (non-zero) values for the observation standard deviations here. The value observation_covariance expresses how much you believe the sensors: what kind of error do you usually expect to see (perhaps based on looking at the scatter plot, or by estimating the accuracy of the observed values). The values in the template above are taken to be standard deviations (in the same units as the corresponding values) and then squared to give variance values that the filter expects.
+
+The transition_covariance expresses how accurate your prediction is: how accurately can you predict the temperature of the CPU (and processor percent/load), based on the previous temperature and processor usage?
+
+Experiment with the parameter values to get the best smoothed result you can. The tradeoffs are the same as before: removing noise while keeping true changes in the signal. Have a look:
+
+kf = KalmanFilter(…)
+kalman_smoothed, _ = kf.smooth(kalman_data)
+plt.plot(cpu_data['timestamp'], kalman_smoothed[:, 0], 'g-')
+Final Output
+
+Add a legend to your plot so we (and you) can distinguish the data points, LOESS-smoothed line, and Kalman-smoothed line. Hint: you saw plt.legend in Exercise 1.
+
+When you submit, make sure your program is not popping up a window, but saves the plot as cpu.svg with the data points, LOESS smoothed line, and Kalman smoothed line: plt.savefig('cpu.svg').
+
+Sensor noise is a common problem in many areas. One sensor that most of us are carrying around: a GPS receiver in a smartphone (or a smartwatch or other wearable). The data that you get from one of those devices is often filtered automatically to remove noise, but that doesn't mean there isn't noise inherent in the system: GPS can be accurate to about 5 m but it seems unlikely that your phone will do that well.
+
+I recorded some tracks of myself walking with GPS Logger for Android. They are included as *.gpx files.
+
+GPX files are XML files that contain (among other things) elements like this for each observation:
+
+<trkpt lat="49.28022235" lon="-123.00543652">…</trkpt>
+The question I want to answer is simple: how far did I walk? The answer to this can't be immediately calculated from the tracks, since the noise makes it look like I ran across the street, crossed back, backed up, jumped forward, …. I actually walked in mostly-straight lines, as one does. On the other hand, we can't just take the difference between the starting and ending points: I didn't walk a completely straight line either.
+
+For this question, write a Python program calc_distance.py that does the tasks described below. See the included calc_distance_hint.py. Your program must take the path of a .gpx file on the command line, like this:
+
+python3 calc_distance.py walk1.gpx
+Read the XML
+
+Since the input files are XML-based, you'll need to use an XML library to read them. Pick one of xml.dom.minidom (with xml.dom) or xml.etree.ElementTree (both of which are in the Python standard library). Dealing with XML namespaces in ElementTree can be tricky. Here's a hint:
+
+parse_result.iter('{http://www.topografix.com/GPX/1/0}trkpt')
+[You may not use a GPX-parsing library: working with XML is an expectation of this exercise.]
+
+You will need to extract the latitude and longitude from each <trkpt> element. We can ignore the elevation, time, and other fields. Create a DataFrame with columns 'lat' and 'lon' holding the observations. [It's certainly possible to do this without loops, but you may write a loop to iterate as you read the file/elements for this part.]
+
+Calculate Distances
+
+To get from latitude/longitude points to distances, we'll need some trigonometry: the haversine formula in particular. You can find more implementation-friendly descriptions of the haversine calculation online, of course. (But remember AcademicHonesty in your code: if you take any code from somewhere else, we always expect a reference.)
+
+Write a function distance that takes a DataFrame as described above, and returns the distance (in metres) between the latitude/longitude points (without any noise reduction: we'll do that next).
+
+This can be done with DataFrame.shift (to get adjacent points into the same rows) and a few expressions on the arrays. If you haven't noticed before, NumPy has implemented useful mathematical operations on arrays.
+
+For the record, I get:
+
+>>> points = pd.DataFrame({
+    'lat': [49.28, 49.26, 49.26],
+    'lon': [123.00, 123.10, 123.05]})
+>>> distance(points).round(6)
+11217.038892
+In your main program, print out the literal distance described in the GPX file, rounded to two decimal places, like this:
+
+points = read_gpx(sys.argv[1])
+print('Unfiltered distance: %0.2f' % (distance(points)))
+Kalman Filtering
+
+For the Kalman filter, we need to specify several parameters. The units of measurement in the data are degrees latitude and longitude.
+
+Around Vancouver, one degree of latitude or longitude is about 10^5 meters. That will be a close enough conversion as we're estimating error…
+While GPS can be accurate to about 5 metres, the reality seems to be several times that: maybe 15 or 20 metres with my phone. (This implies a value for observation_covariance.)
+Without any other knowledge of what direction I was walking, we must assume that my current position will be the same as my previous position. (transition_matrices)
+I usually walk something like 1 m/s and the data contains an observation about every 10 s. (transition_covariance)
+I have no prior knowledge of where the walk started, but the default is probably very far off. The first data point (points.iloc[0]) is probably a much better guess.
+Use these assumptions to create a Kalman filter and reduce the noise in the data. Create a new DataFrame with this data and calculate the “true” distance I walked.
+
+Print the distance in metres, again to two decimal places. There is no “correct” answer to give here: closer to reality is better.
+
+smoothed_points = smooth(points)
+print('Filtered distance: %0.2f' % (distance(smoothed_points)))
+Final output should be as in the provided calc_distance.txt (but with a more realistic filtered distance).
+
+Viewing Your Results
+
+Once you create the smoothed track in a DataFrame, you can call the provided output_gpx to save it to a file. Create a GPX file out.gpx as a side-effect of your program.
+
+A GPX can be viewed online with MyGPSFiles, or with GpsPrune (Ubuntu package gpsprune or download the Java), or in Windows with GPS Track Editor.
+
+Have a look at your results: are you smoothing too much or too little? Tweak the parameters to your Kalman filter to get the best results you can.
+
+So you can see the kind of results you might expect, I have included a screenshot of a track (but not one of the ones you have) and its smoothed result in MyGPSFiles.

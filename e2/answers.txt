@@ -1,0 +1,5 @@
+1. In the hint above, what is the result of the calculation data['timestamp']*fit.slope + fit.intercept? What is the type, and describe the values.
+The result is the prediction of rating for each timestamp. Its type is float64 and values as said earlier, prediction of rating for each timestamp.
+
+2. In the same hint, why does this produce a fit line on the graph? Why are the created_at values and timestamp values paired correctly to make points on the plot?
+This produces a fit line because linear regression function applies to timestamps and then plots them on the graph. The created_at values and timestamp values paired correctly because timestamp values derived from created_at values so when plotting against rating anf timestamp it creates accurate line on the graph.

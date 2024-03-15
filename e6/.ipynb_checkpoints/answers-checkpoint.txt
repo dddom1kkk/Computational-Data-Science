@@ -1,0 +1,10 @@
+1) In the A/B test analysis, do you feel like we're p-hacking? How comfortable are you coming to a conclusion at p < 0.05?
+
+In this case it was predetermined how I will test it before I start including a threshold for p. So from code side there is no p-hacking. From data you provided there can be p-hacking especially when the data is made up. But the conclusion at p < 0.05 is not comfortable enough as, for example, p-value for search activity of instructors is near significance threshold. 
+
+2) If we had done T-tests between each pair of sorting implementation results, how many tests would we run? If we looked for p < 0.05 in them, what would the probability be of having any false conclusions, just by chance? That's the effective p-value of the many-T-tests analysis. [We could have done a Bonferroni correction when doing multiple T-tests, which is a fancy way of saying “for m tests, look for significance at a/m”.]
+
+We would run 21 tests between each pair of sorting implementation results. Significance level using Bonferroni correction is 0,05/21=0,0024.
+
+3) Give a ranking of the sorting implementations by speed, including which ones could not be distinguished. (i.e. which pairs could our experiment not conclude had different running times?)
+

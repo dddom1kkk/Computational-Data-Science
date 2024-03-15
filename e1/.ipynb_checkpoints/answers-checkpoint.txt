@@ -1,0 +1,8 @@
+1. Where you did the same calculations with NumPy and Pandas, which did you find easier to work with? Which code do you think is easier to read?
+I found working with Pandas a lot easier and a lot more convenient, as the representation of data is so neat and understandable. Ease of readability of code is the same. They have same function names (at least in this easy exercise) so i didnt see any significant problems reading one code worse than another.
+
+2. What were the running times of the two pivot_months_* functions? How can you explain the difference?
+Running times:
+    pivot_months_pandas(data) => 3.91 ms ± 76.9 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    pivot_months_loops(data) => 92.6 ms ± 756 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+Using pandas is a lot more effective and faster rather than using simple python loops. I think it is because python loops use big overhead when storing or manipulating data which makes it slower for loops function. Whereas for function with pandas the information storage is managed a lot more effective also in terms of manipulation of data such as summation and etc.

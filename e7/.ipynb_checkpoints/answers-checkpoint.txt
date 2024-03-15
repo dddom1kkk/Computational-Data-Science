@@ -1,0 +1,7 @@
+1. Looking at your dog-rates.ipynb, do you think the residual are close-enough to being normal to look at the OLS p-value? Can you reasonably conclude that the ratings are increasing?
+
+The p-value is very small, so the ratings are increasing over time, as the variables are statistically significantly related. The histogram of residuals shows that the residuals are not normally distributed, however we have over 40 samples which means CLT can hold and we can assume that the distribution is normal which is one of the main assumptions of the OLS regression.
+
+2. Do you think that the new “better” prediction is letting the Kalman filter do a better job capturing the true signal in the noise?
+
+It predicts the noise very well making it a good prediction. However it is not better as it still shows so much noise making it messy for a true signal prediction.

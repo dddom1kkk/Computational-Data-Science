@@ -1,0 +1,84 @@
+---data-1.csv---
+Mean:
+    x     8.717696
+    y    12.522874
+Standard Deviation:
+    x    12.155517
+    y     6.639964
+Range:
+    x   [-22.635878, 35.237055]
+    y   [ -2.565088, 27.384153]
+Correlation between x and y:
+    r = 0.950326
+A very strong correlation between x and y, with values going from low to high, showing a linear pattern
+
+
+---data-2.csv---
+Mean:
+    x   -0.710787
+    y   -0.748987
+Standard Deviation:
+    x    11.481584
+    y     6.257918
+Range:
+    x   [-33.271113, 27.647000]
+    y   [-18.621804, 14.147315]
+Correlation between x and y:
+    r = 0.955153
+Shows a very strong correlation with x and y values moving from negative to positive, indicating a linear pattern with a wide range.
+
+---data-3.csv---
+Mean:
+    x    0.968907
+    y    8.508535
+Standard Deviation:
+    x    2.235558
+    y    1.149301
+Range:
+    x   [-2.449064,  4.518885]
+    y   [ 6.641734, 10.551871]
+Correlation between x and y:
+    r = 0.981937
+Has a very strong correlation in a small range of values, showing a very close and consistent pattern.
+
+---data-4.csv---
+Mean:
+    x    49.905086
+    y    18.553837
+Standard Deviation:
+    x    28.508611
+    y    16.545896
+Range:
+    x   [0.0, 87.37670]
+    y   [0.0, 44.56504]
+Correlation between x and y:
+    r = -0.081193
+Shows a small negative correlation, with values starting at zero and spreading out widely, suggesting there's barely any pattern.
+
+---data-5.csv---
+Mean:
+    x    49.909994
+    y    18.555525
+Standard Deviation:
+    x    28.500001
+    y    16.540796
+Range:
+    x   [4.337892, 91.052863]
+    y   [0.055498, 49.934197]
+Correlation between x and y:
+    r = -0.088236
+A small negative correlation and a wide range of values, and a very weak opposite pattern between x and y.
+
+---data-6.csv---
+Mean:
+    x    7.216155
+    y    7.602215
+Standard Deviation:
+    x    11.921599
+    y    11.764382
+Range:
+    x   [-24.333821, 35.402139]
+    y   [-22.956357, 36.079874]
+Correlation between x and y:
+    r = 0.935069
+A very strong correlation with x and y having a wide range and having similar average values, meaning a linear pattern across a huge range of area.

@@ -1,0 +1,18 @@
+1. Which of the four transforms suggested got you the closest to satisfying the assumptions of a T-test?
+
+The weekly data transformation got the closest for assumptions for a T-test, showing better normality and a better equal-variance p-value.
+
+
+2. We gave imprecise English translations of what the by-week test, and the Mann-Whitney test were actually testing. Do the same for the original T-test, and for the transformed data T-test. That is, describe what the conclusion would be if you could reject the null hypothesis in those tests.
+
+For Original T-test if you could reject the null hypothesis, it would mean that the average number of Reddit posts differs significantly between weekdays and weekends. And for Transformed Data T-test Rejecting the null hypothesis here would mean that there is still a significant difference in the average number of posts between weekdays and weekends after transforming the data correctly for distribution or variance problems.
+
+
+3. Of the four approaches, which do you think actually does a better job of getting an answer for the original question: “are there a different number of Reddit comments posted on weekdays than on weekends?” Briefly explain why. (It's not clear to me that there is a single correct answer to this question.)
+
+The Mann-Whitney U-test might do a better job. Especially when normality and equal variance assumptions didnt meet fully, so it answers the question without assuming normal distributions, giving a strong compare between weekdays and weekends.
+
+
+4. When are more Reddit comments posted in /r/canada, on average weekdays or weekends?
+
+More Reddit comments are likely posted on weekdays than weekends in /r/canada when looking at the normality and variance test results, as was concluded from the statistical significance indicating a difference in posting between these periods.

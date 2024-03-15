@@ -1,0 +1,7 @@
+1. Based on your results for the last question, do you think daily temperatures are a good way to predict population density? Briefly explain why or why not.
+
+I dont think its a good way of predicting population density as the correlation between temperature and population density is not high enough for it to be valid. As seen on the scatterplot the values are widely scattered so i would not use temperatures to predict population density.
+
+2. The larger data file (stations.json.gz) was kept compressed on disk throughout the analysis. Decompressing every time we run the program seems inefficient. Why might this be faster than working with an uncompressed .json data?
+
+One of the reasons could be disk access for reading file. Compressed files will be read much faster than uncompressed. Also with CPUs nowadays they are fast to decompress. So every time when program runs, decompressing is still faster than accessing uncompressed files.
