@@ -1,0 +1,7 @@
+1. Which model did the best for the colour-prediction task? Can you give a theory about why? Do you have any theory about why RGB/LAB/HSV worked better for different models?
+
+In this case I think Random Forest Prediction model did the best for the colour-prediction task. The reason is it makes and uses decision trees to accurately predict values. For RGB, Random Forest Prediction Model worked better because it takes values directly. And for LAB, kNN model classifier worked better as it works better in measuring distances in case of LAB.
+
+2. Have a look at the cities in your validation data where the weather model makes the wrong prediction. Do you feel like the model is making reasonable mistakes? Can you think of any weather features that we could potentially add to make better predictions?
+
+It makes reasonable mistakes as, in places where it makes errors, values are very small in difference. If we add more factors of the weather like air quality, visibility or humidity it will definitely make less errors and predict more accurately.
